@@ -29,11 +29,11 @@ try {
             "userName" => $row['userName'],
             "email" => $row['email'],
             "phoneNumber" => $row['phoneNumber'],
-            "role" => $row['role'],
+
             // Tạo URL hoàn chỉnh cho ảnh
-            "avatar" => "http://172.19.201.39:80/api/gym/userimage/" . $row['image'],
-            "created_at" => $row['created_at'],
-            "updated_at" => $row['updated_at']
+            "avatar" => "http://192.168.1.19:80/api/gym/userimage/" . $row['avatar'],
+            "role" => $row['role'],
+            
         );
         $userinfos[] = $userinfo;
     }
