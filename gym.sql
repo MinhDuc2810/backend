@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 27, 2024 at 03:51 PM
+-- Generation Time: Nov 28, 2024 at 03:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -50,9 +50,18 @@ CREATE TABLE `packages` (
   `type` varchar(50) NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `duration` int(11) NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `packages`
+--
+
+INSERT INTO `packages` (`id`, `name`, `type`, `price`, `duration`, `status`, `createdAt`, `updatedAt`) VALUES
+(1, 'Updated Gym Package', 'Yearly', 1000000.00, 365, 'inactive', '2024-11-28 13:46:35', '2024-11-28 14:12:57'),
+(2, 'Premium Package', 'Monthly', 500000.00, 30, 'active', '2024-11-28 13:53:05', '2024-11-28 13:53:05');
 
 -- --------------------------------------------------------
 
@@ -161,7 +170,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `userName`, `phoneNumber`, `email`, `password`, `role`, `avatar`, `createdAt`, `updatedAt`, `isDeleted`) VALUES
-(1, 'JaneDoe', '9876543210', 'janedoe@example.com', '$2y$10$j2G.PCSr23RcOXawmYapZORFiKaMFCriGQI.ut4u1q5QpGdeSpwRm', 'Admin', NULL, '2024-11-27 14:23:50', '2024-11-27 14:48:21', 1);
+(1, 'JaneDoe', '9876543210', 'janedoe@example.com', '$2y$10$/0wxjmuLjbFb20mRrZFqD./3EX1pW5sFAb7Ypq5ApIJEQJXrwp5ba', 'Admin', NULL, '2024-11-27 14:23:50', '2024-11-28 14:10:08', 0);
 
 --
 -- Indexes for dumped tables
@@ -239,7 +248,7 @@ ALTER TABLE `bookings`
 -- AUTO_INCREMENT for table `packages`
 --
 ALTER TABLE `packages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `pts`

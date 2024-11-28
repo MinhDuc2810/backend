@@ -1,83 +1,101 @@
 <?php
 require_once('../connect.php');
-// Thông tin kết nối cơ sở dữ liệu
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "gym";
 
-// Kiểm tra phương thức yêu cầu
-if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-    // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
-    try {
-        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        // Lấy dữ liệu từ body của yêu cầu
-        $rawInput = file_get_contents('php://input');
-        $data = json_decode($rawInput, true);
-
-        // Kiểm tra dữ liệu đầu vào
-        if (isset($data['id']) && !empty($data['id'])) {
-            $id = $data['id'];
-            $fieldsToUpdate = [];
-
-            // Kiểm tra và chuẩn bị các trường để cập nhật
-            if (isset($data['userName'])) {
-                $fieldsToUpdate['userName'] = $data['userName'];
-            }
-            if (isset($data['phoneNumber'])) {
-                $fieldsToUpdate['phoneNumber'] = $data['phoneNumber'];
-            }
-            if (isset($data['email'])) {
-                $fieldsToUpdate['email'] = $data['email'];
-            }
-            if (isset($data['password'])) {
-                $fieldsToUpdate['password'] = password_hash($data['password'], PASSWORD_DEFAULT); // Mã hóa mật khẩu
-            }
-            if (isset($data['role'])) {
-                $fieldsToUpdate['role'] = $data['role'];
-            }
-
-            // Nếu không có trường nào để cập nhật
-            if (empty($fieldsToUpdate)) {
-                header('Content-Type: application/json');
-                echo json_encode(array("message" => "No fields to update", "status" => "error"));
-                exit;
-            }
-
-            // Xây dựng câu lệnh SQL động
-            $updateFields = [];
-            foreach ($fieldsToUpdate as $key => $value) {
-                $updateFields[] = "$key = :$key";
-            }
-            $sql = "UPDATE Users SET " . implode(", ", $updateFields) . " WHERE id = :id";
-            $stmt = $conn->prepare($sql);
-
-            // Gán giá trị tham số
-            foreach ($fieldsToUpdate as $key => $value) {
-                $stmt->bindValue(":$key", $value);
-            }
-            $stmt->bindValue(":id", $id, PDO::PARAM_INT);
-
-            // Thực thi câu lệnh
-            $stmt->execute();
-
-            // Trả về phản hồi thành công
-            header('Content-Type: application/json');
-            echo json_encode(array("message" => "User updated successfully", "status" => "success"));
-        } else {
-            // Trả về lỗi nếu thiếu ID
-            header('Content-Type: application/json');
-            echo json_encode(array("message" => "User ID is required", "status" => "error"));
-        }
-    } catch (PDOException $e) {
-        // Trả về lỗi nếu kết nối hoặc câu lệnh SQL gặp vấn đề
-        header('Content-Type: application/json');
-        echo json_encode(array("message" => "Error: " . $e->getMessage(), "status" => "error"));
+try {
+    // Kiểm tra phương thức HTTP
+    if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
+        echo json_encode([
+            "message" => "Invalid request method. Only PUT is allowed.",
+            "status" => "error"
+        ]);
+        exit();
     }
-} else {
-    // Nếu không phải phương thức PUT, trả về lỗi
-    header('Content-Type: application/json');
-    echo json_encode(array("message" => "Invalid request method", "status" => "error"));
+
+    // Kiểm tra xem ID có được truyền qua URL không
+    if (!isset($_GET['id']) || empty($_GET['id'])) {
+        echo json_encode([
+            "message" => "User ID is required in the URL.",
+            "status" => "error"
+        ]);
+        exit();
+    }
+
+    // Lấy ID từ query string
+    $id = $_GET['id'];
+
+    // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Đọc dữ liệu từ yêu cầu PUT
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    // Kiểm tra nếu dữ liệu trống
+    if (!$data) {
+        echo json_encode([
+            "message" => "No data provided for update.",
+            "status" => "error"
+        ]);
+        exit();
+    }
+
+    // Truy vấn kiểm tra nếu người dùng tồn tại
+    $checkSql = "SELECT * FROM users WHERE id = :id";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $checkStmt->execute();
+
+    if ($checkStmt->rowCount() === 0) {
+        echo json_encode([
+            "message" => "User with ID $id not found.",
+            "status" => "error"
+        ]);
+        exit();
+    }
+
+    // Cập nhật thông tin người dùng
+    $updateSql = "UPDATE users SET 
+                    userName = COALESCE(:userName, userName),
+                    phoneNumber = COALESCE(:phoneNumber, phoneNumber),
+                    email = COALESCE(:email, email),
+                    role = COALESCE(:role, role),
+                    updatedAt = CURRENT_TIMESTAMP 
+                  WHERE id = :id";
+
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $updateStmt->bindParam(':userName', $data['userName']);
+    $updateStmt->bindParam(':phoneNumber', $data['phoneNumber']);
+    $updateStmt->bindParam(':email', $data['email']);
+    $updateStmt->bindParam(':role', $data['role']);
+
+    $updateStmt->execute();
+
+    // Trả về thông tin đã cập nhật
+    $userUpdated = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    $response = [
+        "id" => $userUpdated['id'],
+        "userName" => $data['userName'] ?? $userUpdated['userName'],
+        "phoneNumber" => $data['phoneNumber'] ?? $userUpdated['phoneNumber'],
+        "email" => $data['email'] ?? $userUpdated['email'],
+        "role" => $data['role'] ?? $userUpdated['role'],
+        "createdAt" => $userUpdated['createdAt'],
+        "updatedAt" => date('Y-m-d H:i:s') // Lấy thời gian hiện tại cho updatedAt
+    ];
+
+    echo json_encode([
+        "message" => "User updated successfully.",
+        "status" => "success",
+        "data" => $response
+    ]);
+} catch (PDOException $e) {
+    // Xử lý lỗi kết nối hoặc truy vấn
+    echo json_encode([
+        "message" => "Error updating user: " . $e->getMessage(),
+        "status" => "error"
+    ]);
 }

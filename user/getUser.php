@@ -5,46 +5,76 @@ $username = "root";
 $password = "";
 $dbname = "gym";
 
-// Thông tin kết nối cơ sở dữ liệu
 try {
+    // Kiểm tra phương thức HTTP
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        echo json_encode([
+            "message" => "Invalid request method. Only GET is allowed.",
+            "status" => "error",
+            "data" => []
+        ]);
+        exit();
+    }
+
+    // Kiểm tra xem ID có được truyền qua URL không
+    if (!isset($_GET['id']) || empty($_GET['id'])) {
+        echo json_encode([
+            "message" => "User ID is required.",
+            "status" => "error",
+            "data" => []
+        ]);
+        exit();
+    }
+
+    // Lấy ID từ query string
+    $id = $_GET['id'];
+
     // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-
-    // Thiết lập chế độ báo lỗi của PDO
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Truy vấn lấy dữ liệu sản phẩm
-    $sql = "SELECT * FROM users";
+    // Truy vấn lấy dữ liệu người dùng theo ID
+    $sql = "SELECT * FROM users WHERE id = :id";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
 
-    // Mảng chứa dữ liệu trả về
-    $userinfos = array();
-
-    // Lấy tất cả dữ liệu
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Tạo cấu trúc dữ liệu cho mỗi sản phẩm
-        $userinfo = array(
-            "id" => $row['id'],
-            "userName" => $row['userName'],
-            "email" => $row['email'],
-            "phoneNumber" => $row['phoneNumber'],
-            "role" => $row['role'],
-            // Tạo URL hoàn chỉnh cho ảnh
-            "avatar" => "http://172.19.201.39:80/api/gym/userimage/" . $row['image'],
-            "created_at" => $row['created_at'],
-            "updated_at" => $row['updated_at']
-        );
-        $userinfos[] = $userinfo;
+    // Kiểm tra nếu không tìm thấy người dùng
+    if ($stmt->rowCount() === 0) {
+        echo json_encode([
+            "message" => "User with ID $id not found.",
+            "status" => "error",
+            "data" => []
+        ]);
+        exit();
     }
+
+    // Lấy dữ liệu người dùng
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $userinfo = array(
+        "id" => (string)$row['id'], // Chuyển đổi ID thành chuỗi
+        "userName" => $row['userName'],
+        "phoneNumber" => $row['phoneNumber'],
+        "email" => $row['email'],
+        "role" => $row['role'],
+        "createdAt" => $row['createdAt'],
+        "updatedAt" => $row['updatedAt']
+    );
 
     // Đóng kết nối
     $conn = null;
 
     // Trả về dữ liệu dưới dạng JSON
-    header('Content-Type: application/json');
-    echo json_encode($userinfos);
+    echo json_encode([
+        "message" => "User retrieved successfully.",
+        "status" => "success",
+        "data" => $userinfo
+    ]);
 } catch (PDOException $e) {
-    // Xử lý lỗi nếu kết nối gặp vấn đề
-    echo "Connection failed: " . $e->getMessage();
+    // Xử lý lỗi kết nối hoặc truy vấn
+    echo json_encode([
+        "message" => "Failed to retrieve user.",
+        "status" => "error",
+        "data" => []
+    ]);
 }
