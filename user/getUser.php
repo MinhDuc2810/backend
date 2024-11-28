@@ -6,31 +6,31 @@ $password = "";
 $dbname = "gym";
 
 try {
-    // Kiểm tra phương thức HTTP
+    // Kiểm tra xem phương thức HTTP có phải là GET hay không
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         echo json_encode([
-            "message" => "Invalid request method. Only GET is allowed.",
             "status" => "error",
-            "data" => []
+            "message" => "Invalid request method. Only GET is allowed."
         ]);
         exit();
     }
 
-    // Kiểm tra xem ID có được truyền qua URL không
+    // Kiểm tra xem `id` có được truyền qua URL không
     if (!isset($_GET['id']) || empty($_GET['id'])) {
         echo json_encode([
-            "message" => "User ID is required.",
             "status" => "error",
-            "data" => []
+            "message" => "User ID is required."
         ]);
         exit();
     }
 
-    // Lấy ID từ query string
+    // Lấy `id` từ URL
     $id = $_GET['id'];
 
     // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+
+    // Thiết lập chế độ báo lỗi của PDO
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Truy vấn lấy dữ liệu người dùng theo ID
@@ -39,42 +39,44 @@ try {
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
 
-    // Kiểm tra nếu không tìm thấy người dùng
+    // Kiểm tra nếu không có kết quả
     if ($stmt->rowCount() === 0) {
         echo json_encode([
-            "message" => "User with ID $id not found.",
             "status" => "error",
-            "data" => []
+            "message" => "User with ID $id not found."
         ]);
         exit();
     }
 
     // Lấy dữ liệu người dùng
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $userinfo = array(
-        "id" => (string)$row['id'], // Chuyển đổi ID thành chuỗi
+
+    // Tạo cấu trúc dữ liệu cho người dùng
+    $userinfo = [
+        "id" => $row['id'],
         "userName" => $row['userName'],
-        "phoneNumber" => $row['phoneNumber'],
         "email" => $row['email'],
-        "role" => $row['role'],
-        "createdAt" => $row['createdAt'],
-        "updatedAt" => $row['updatedAt']
-    );
+        "phoneNumber" => $row['phoneNumber'],
+        "avatar" => "http://192.168.1.19:80/api/gym/userimage/" . $row['avatar'],
+        "role" => $row['role']
+    ];
 
     // Đóng kết nối
     $conn = null;
 
-    // Trả về dữ liệu dưới dạng JSON
-    echo json_encode([
-        "message" => "User retrieved successfully.",
+    // Định dạng phản hồi JSON
+    $response = [
         "status" => "success",
+        "message" => "User retrieved successfully.",
         "data" => $userinfo
-    ]);
+    ];
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
 } catch (PDOException $e) {
-    // Xử lý lỗi kết nối hoặc truy vấn
+    // Xử lý lỗi nếu kết nối hoặc truy vấn gặp vấn đề
     echo json_encode([
-        "message" => "Failed to retrieve user.",
         "status" => "error",
-        "data" => []
+        "message" => "Connection failed: " . $e->getMessage()
     ]);
 }
