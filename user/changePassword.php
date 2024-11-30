@@ -23,6 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $currentPassword = $data['currentPassword'];
             $newPassword = $data['newPassword'];
 
+            // Kiểm tra độ mạnh của mật khẩu mới
+            if (!isPasswordStrong($newPassword)) {
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    "message" => "New password is too weak. It must contain at least 6 characters, including uppercase, lowercase, digits, and special characters.",
+                    "status" => "error"
+                ));
+                exit;
+            }
+
             // Truy vấn tìm người dùng với email
             $sql = "SELECT id, password FROM Users WHERE email = :email AND isDeleted = 0";
             $stmt = $conn->prepare($sql);
@@ -71,4 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Nếu không phải phương thức POST, trả về lỗi
     header('Content-Type: application/json');
     echo json_encode(array("message" => "Invalid request method", "status" => "error"));
+}
+
+// Hàm kiểm tra độ mạnh của mật khẩu
+function isPasswordStrong($password)
+{
+    return strlen($password) >= 6
+        && preg_match('/[A-Z]/', $password)
+        && preg_match('/[a-z]/', $password)
+        && preg_match('/\d/', $password)
+        && preg_match('/[\W_]/', $password);
 }
