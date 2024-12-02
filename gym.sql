@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 28, 2024 at 03:13 PM
+-- Generation Time: Dec 02, 2024 at 03:39 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -61,7 +61,9 @@ CREATE TABLE `packages` (
 
 INSERT INTO `packages` (`id`, `name`, `type`, `price`, `duration`, `status`, `createdAt`, `updatedAt`) VALUES
 (1, 'Updated Gym Package', 'Yearly', 1000000.00, 365, 'inactive', '2024-11-28 13:46:35', '2024-11-28 14:12:57'),
-(2, 'Premium Package', 'Monthly', 500000.00, 30, 'active', '2024-11-28 13:53:05', '2024-11-28 13:53:05');
+(2, 'Premium Package', 'Monthly', 500000.00, 30, 'active', '2024-11-28 13:53:05', '2024-11-28 13:53:05'),
+(3, 'Premium Package', 'Monthly', 500000.00, 30, 'active', '2024-11-30 07:41:30', '2024-11-30 07:41:30'),
+(4, 'Premium Package', 'Monthly', 500000.00, 30, 'active', '2024-11-30 07:42:12', '2024-11-30 07:42:12');
 
 -- --------------------------------------------------------
 
@@ -116,6 +118,21 @@ CREATE TABLE `pttimeslots` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `settings`
+--
+
+CREATE TABLE `settings` (
+  `id` int(11) NOT NULL,
+  `key` varchar(255) NOT NULL,
+  `value` text NOT NULL,
+  `description` text DEFAULT NULL,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `usermemberships`
 --
 
@@ -160,17 +177,21 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `role` varchar(20) NOT NULL,
   `avatar` varchar(255) DEFAULT NULL,
+  `otp` varchar(6) DEFAULT NULL,
+  `otpExpiresAt` datetime DEFAULT NULL,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `isDeleted` tinyint(1) DEFAULT 0
+  `isActive` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `userName`, `phoneNumber`, `email`, `password`, `role`, `avatar`, `createdAt`, `updatedAt`, `isDeleted`) VALUES
-(1, 'JaneDoe', '9876543210', 'janedoe@example.com', '$2y$10$/0wxjmuLjbFb20mRrZFqD./3EX1pW5sFAb7Ypq5ApIJEQJXrwp5ba', 'Admin', NULL, '2024-11-27 14:23:50', '2024-11-28 14:10:08', 0);
+INSERT INTO `users` (`id`, `userName`, `phoneNumber`, `email`, `password`, `role`, `avatar`, `otp`, `otpExpiresAt`, `createdAt`, `updatedAt`, `isActive`) VALUES
+(1, 'JaneDoe', '9876543210', 'janedoe@example.com', '$2y$10$/0wxjmuLjbFb20mRrZFqD./3EX1pW5sFAb7Ypq5ApIJEQJXrwp5ba', 'Admin', NULL, NULL, NULL, '2024-11-27 14:23:50', '2024-11-30 07:43:29', 0),
+(2, 'JohnDoe1', '1234567890', 'johndoe1@example.com', '$2y$10$M5VrWj7DmJ8OXwlLtcIvNeJZLAv6x.NZYDysqWx2kA6wIUWSEHfrK', 'User', NULL, NULL, NULL, '2024-11-30 07:43:13', '2024-11-30 07:43:13', 0),
+(3, 'JohnDoe', '0987654344', 'datnd10.dev@gmail.com', '$2y$10$7GYZodSLoIkxNz2zy6hH6.wPWqEeVLiJbKnBOGakrZVXZG9HTypYG', 'User', NULL, '974641', '2024-12-02 17:57:24', '2024-12-02 10:42:24', '2024-12-02 10:42:24', 0);
 
 --
 -- Indexes for dumped tables
@@ -213,6 +234,13 @@ ALTER TABLE `pttimeslots`
   ADD KEY `scheduleId` (`scheduleId`);
 
 --
+-- Indexes for table `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `key` (`key`);
+
+--
 -- Indexes for table `usermemberships`
 --
 ALTER TABLE `usermemberships`
@@ -248,7 +276,7 @@ ALTER TABLE `bookings`
 -- AUTO_INCREMENT for table `packages`
 --
 ALTER TABLE `packages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `pts`
@@ -269,6 +297,12 @@ ALTER TABLE `pttimeslots`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `settings`
+--
+ALTER TABLE `settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `usermemberships`
 --
 ALTER TABLE `usermemberships`
@@ -284,7 +318,7 @@ ALTER TABLE `userpackages`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
