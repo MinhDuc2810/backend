@@ -14,7 +14,7 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Truy vấn lấy dữ liệu sản phẩm
-    $sql = "SELECT * FROM users";
+    $sql = "SELECT * FROM users where isDeleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
 

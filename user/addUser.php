@@ -10,19 +10,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Lấy dữ liệu JSON từ yêu cầu
-        $rawInput = file_get_contents('php://input');
-        $data = json_decode($rawInput, true);
+        // Kiểm tra dữ liệu đầu vào từ multipart/form-data
+        if (isset($_POST['userName'], $_POST['email'], $_POST['phoneNumber'], $_POST['password'], $_POST['role']) && isset($_FILES['image'])) {
+            $userName = $_POST['userName'];
+            $email = $_POST['email'];
+            $phoneNumber = $_POST['phoneNumber'];
+            $password = $_POST['password'];
+            $role = $_POST['role'];
+            $image = $_FILES['image'];
 
-        // Kiểm tra dữ liệu đầu vào
-        if (isset($data['userName'], $data['phoneNumber'], $data['email'], $data['password'], $data['role'])) {
-            $userName = $data['userName'];
-            $phoneNumber = $data['phoneNumber'];
-            $email = $data['email'];
-            $password = $data['password'];
-            $role = $data['role'];
-
-            // Kiểm tra email hoặc số điện thoại đã tồn tại chưa
+            // Kiểm tra email hoặc số điện thoại đã tồn tại
             $stmt = $conn->prepare("SELECT * FROM Users WHERE email = :email OR phoneNumber = :phoneNumber");
             $stmt->bindParam(':email', $email);
             $stmt->bindParam(':phoneNumber', $phoneNumber);
@@ -44,17 +41,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
+            // Lưu ảnh vào thư mục
+            $imagePath = saveImage($image, $userName);
+
+            if (!$imagePath) {
+                header('Content-Type: application/json');
+                echo json_encode(["message" => "Failed to save image", "status" => "error"]);
+                exit;
+            }
+
             // Mã hóa mật khẩu
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             // Thêm người dùng vào cơ sở dữ liệu
-            $sql = "INSERT INTO Users (userName, phoneNumber, email, password, role) VALUES (:userName, :phoneNumber, :email, :password, :role)";
+            $sql = "INSERT INTO Users (userName, phoneNumber, email, password, role, avatar) VALUES (:userName, :phoneNumber, :email, :password, :role, :avatar)";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':userName', $userName);
             $stmt->bindParam(':phoneNumber', $phoneNumber);
             $stmt->bindParam(':email', $email);
             $stmt->bindParam(':password', $hashedPassword);
             $stmt->bindParam(':role', $role);
+            $stmt->bindParam(':avatar', $imagePath);
             $stmt->execute();
 
             header('Content-Type: application/json');
@@ -72,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(["message" => "Invalid request method", "status" => "error"]);
 }
 
+// Kiểm tra độ mạnh mật khẩu
 function isPasswordStrong($password)
 {
     return strlen($password) >= 6
@@ -80,3 +88,24 @@ function isPasswordStrong($password)
         && preg_match('/\d/', $password)
         && preg_match('/[\W_]/', $password);
 }
+
+// Lưu ảnh vào thư mục
+function saveImage($file, $userName)
+{
+    if ($file['error'] === UPLOAD_ERR_OK) {
+        $directory = '../userimage/';
+        if (!file_exists($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $fileName = $userName . "_" . time() . "." . $fileExtension; // Đặt tên file dựa trên userName và timestamp
+        $filePath = $directory . $fileName;
+
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            return $filePath; // Trả về đường dẫn file đã lưu
+        }
+    }
+    return false; // Lỗi trong quá trình upload
+}
+?>
