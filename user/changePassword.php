@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Truy vấn tìm người dùng với email
-            $sql = "SELECT id, password FROM Users WHERE email = :email AND isDeleted = 0";
+            $sql = "SELECT id, password FROM Users WHERE email = :email AND isActive = 0";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':email', $email);
             $stmt->execute();
