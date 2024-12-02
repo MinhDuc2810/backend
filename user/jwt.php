@@ -1,6 +1,6 @@
 <?php
 // Secret key cho JWT
-define('JWT_SECRET', 'ductaoancut');
+define('JWT_SECRET', 'chodatngu');
 
 // Hàm tạo JWT
 function generateJWT($payload, $expiryInSeconds = 3600)

@@ -56,8 +56,7 @@ try {
                     name = :name, 
                     type = :type, 
                     price = :price, 
-                    duration = :duration, 
-                    status = :status, 
+                    duration = :duration,
                     updatedAt = CURRENT_TIMESTAMP 
                   WHERE id = :id";
 
@@ -69,14 +68,13 @@ try {
     $type = !empty($data['type']) ? $data['type'] : $package['type'];
     $price = isset($data['price']) ? $data['price'] : $package['price'];
     $duration = !empty($data['duration']) ? $data['duration'] : $package['duration'];
-    $status = !empty($data['status']) ? $data['status'] : $package['status'];
 
     $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
     $updateStmt->bindParam(':name', $name);
     $updateStmt->bindParam(':type', $type);
     $updateStmt->bindParam(':price', $price);
     $updateStmt->bindParam(':duration', $duration);
-    $updateStmt->bindParam(':status', $status);
+    
 
     // Execute the update
     $updateStmt->execute();
@@ -91,7 +89,6 @@ try {
             "type" => $type,
             "price" => $price,
             "duration" => $duration,
-            "status" => $status
         ]
     ]);
 } catch (PDOException $e) {
