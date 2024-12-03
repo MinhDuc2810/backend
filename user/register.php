@@ -1,6 +1,7 @@
 <?php
 require_once('../connect.php');
 require_once('../helper/email.php'); // Hàm sendMail để gửi email OTP
+session_start(); // Bắt đầu session
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -62,6 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':otp', $otp);
             $stmt->bindParam(':otpExpiresAt', $otpExpiresAt);
             $stmt->execute();
+
+            // Lưu email vào session
+            $_SESSION['email'] = $email;
 
             // Gửi email OTP
             $subject = "Verify Your Account";
