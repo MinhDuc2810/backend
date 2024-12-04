@@ -7,7 +7,7 @@ $dbname = "gym";
 
 // Thông tin kết nối cơ sở dữ liệu
 try {
-    // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
+    
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 
     // Thiết lập chế độ báo lỗi của PDO
@@ -31,7 +31,7 @@ try {
             "phoneNumber" => $row['phoneNumber'],
 
             // Tạo URL hoàn chỉnh cho ảnh
-            "avatar" => "http://192.168.1.19:80/api/gym/userimage/" . $row['avatar'],
+            "avatar" => "http://192.168.6.193:80/api/backend/userimage/" . $row['avatar'],
             "role" => $row['role'],
             
         );

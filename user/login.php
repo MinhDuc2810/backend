@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = $data['password'];
 
             // Truy vấn tìm người dùng với email
-            $sql = "SELECT id, userName, email, password, role FROM Users WHERE email = :email AND isDeleted = 0";
+            $sql = "SELECT * FROM Users WHERE email = :email AND isDeleted = 0";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':email', $email);
             $stmt->execute();
@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "id" => $user['id'],
                         "userName" => $user['userName'],
                         "email" => $user['email'],
+                        "phoneNumber" => $user['phoneNumber'],
+                        "avatar" => $user['avatar'],
                         "role" => $user['role'],
                         "exp" => time() + (60 * 60 * 24) // Token hết hạn sau 24 giờ
                     ];
@@ -53,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             "id" => $user['id'],
                             "userName" => $user['userName'],
                             "email" => $user['email'],
+                            "phoneNumber" => $user['phoneNumber'],
+                            "avatar" => "http://192.168.6.193:80/api/backend/userimage/" . $user['avatar'],
                             "role" => $user['role']
                         ]
                     ]);
