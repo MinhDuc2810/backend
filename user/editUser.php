@@ -62,7 +62,6 @@ try {
                     userName = COALESCE(:userName, userName),
                     phoneNumber = COALESCE(:phoneNumber, phoneNumber),
                     email = COALESCE(:email, email),
-                    role = COALESCE(:role, role),
                     updatedAt = CURRENT_TIMESTAMP 
                   WHERE id = :id";
 
@@ -71,7 +70,6 @@ try {
     $updateStmt->bindParam(':userName', $data['userName']);
     $updateStmt->bindParam(':phoneNumber', $data['phoneNumber']);
     $updateStmt->bindParam(':email', $data['email']);
-    $updateStmt->bindParam(':role', $data['role']);
 
     $updateStmt->execute();
 
@@ -82,15 +80,14 @@ try {
         "userName" => $data['userName'] ?? $userUpdated['userName'],
         "phoneNumber" => $data['phoneNumber'] ?? $userUpdated['phoneNumber'],
         "email" => $data['email'] ?? $userUpdated['email'],
-        "role" => $data['role'] ?? $userUpdated['role'],
-        "createdAt" => $userUpdated['createdAt'],
-        "updatedAt" => date('Y-m-d H:i:s') // Lấy thời gian hiện tại cho updatedAt
+        "avatar" => "http://192.168.6.193:80/api/backend/userimage/" . $userUpdated['avatar'],
+        "role" => $userUpdated['role']
     ];
 
     echo json_encode([
         "message" => "User updated successfully.",
         "status" => "success",
-        "data" => $response
+        "user" => $response
     ]);
 } catch (PDOException $e) {
     // Xử lý lỗi kết nối hoặc truy vấn
