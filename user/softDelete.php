@@ -22,14 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $data['id'];
 
             // Kiểm tra xem người dùng có tồn tại không và chưa bị xóa
-            $checkSql = "SELECT * FROM Users WHERE id = :id AND isDeleted = 0";
+            $checkSql = "SELECT * FROM Users WHERE id = :id AND isActive = 0";
             $checkStmt = $conn->prepare($checkSql);
             $checkStmt->bindParam(':id', $id, PDO::PARAM_INT);
             $checkStmt->execute();
 
             if ($checkStmt->rowCount() > 0) {
-                // Cập nhật trạng thái isDeleted thành 1
-                $sql = "UPDATE Users SET isDeleted = 1 WHERE id = :id";
+                // Cập nhật trạng thái isActive thành 1
+                $sql = "UPDATE Users SET isActive = 1 WHERE id = :id";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':id', $id, PDO::PARAM_INT);
                 $stmt->execute();
