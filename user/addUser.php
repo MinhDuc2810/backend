@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             // Thêm người dùng vào cơ sở dữ liệu
-            $sql = "INSERT INTO Users (userName, phoneNumber, email, password, role, avatar) VALUES (:userName, :phoneNumber, :email, :password, :role, :avatar)";
+            $sql = "INSERT INTO Users (userName, phoneNumber, email, password, role, avatar, isActive) VALUES (:userName, :phoneNumber, :email, :password, :role, :avatar, 1)";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':userName', $userName);
             $stmt->bindParam(':phoneNumber', $phoneNumber);

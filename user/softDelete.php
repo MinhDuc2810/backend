@@ -1,59 +1,68 @@
 <?php
 require_once('../connect.php');
-// Thông tin kết nối cơ sở dữ liệu
+
+// Database connection details
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "gym";
 
-// Kiểm tra phương thức yêu cầu
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
-    try {
-        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        // Lấy dữ liệu từ body của yêu cầu
-        $rawInput = file_get_contents('php://input');
-        $data = json_decode($rawInput, true);
-
-        // Kiểm tra dữ liệu đầu vào
-        if (isset($data['id']) && !empty($data['id'])) {
-            $id = $data['id'];
-
-            // Kiểm tra xem người dùng có tồn tại không và chưa bị xóa
-            $checkSql = "SELECT * FROM Users WHERE id = :id AND isActive = 0";
-            $checkStmt = $conn->prepare($checkSql);
-            $checkStmt->bindParam(':id', $id, PDO::PARAM_INT);
-            $checkStmt->execute();
-
-            if ($checkStmt->rowCount() > 0) {
-                // Cập nhật trạng thái isActive thành 1
-                $sql = "UPDATE Users SET isActive = 1 WHERE id = :id";
-                $stmt = $conn->prepare($sql);
-                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-                $stmt->execute();
-
-                // Trả về phản hồi thành công
-                header('Content-Type: application/json');
-                echo json_encode(array("message" => "User soft deleted successfully", "status" => "success"));
-            } else {
-                // Người dùng không tồn tại hoặc đã bị xóa
-                header('Content-Type: application/json');
-                echo json_encode(array("message" => "User not found or already deleted", "status" => "error"));
-            }
-        } else {
-            // Trả về lỗi nếu thiếu ID
-            header('Content-Type: application/json');
-            echo json_encode(array("message" => "User ID is required", "status" => "error"));
-        }
-    } catch (PDOException $e) {
-        // Trả về lỗi nếu kết nối hoặc câu lệnh SQL gặp vấn đề
-        header('Content-Type: application/json');
-        echo json_encode(array("message" => "Error: " . $e->getMessage(), "status" => "error"));
+try {
+    // Check if the request method is DELETE
+    if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Invalid request method. Only DELETE requests are allowed."
+        ]);
+        exit();
     }
-} else {
-    // Nếu không phải phương thức POST, trả về lỗi
-    header('Content-Type: application/json');
-    echo json_encode(array("message" => "Invalid request method", "status" => "error"));
+
+    // Check if ID is provided in the query string
+    if (!isset($_GET['id']) || empty($_GET['id'])) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "PT ID is required in the URL."
+        ]);
+        exit();
+    }
+
+    // Retrieve package ID from URL
+    $id = $_GET['id'];
+
+    // Connect to MySQL database
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Prepare SQL to check if the package exists
+    $checkSql = "SELECT * FROM users WHERE id = :id";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $checkStmt->execute();
+
+    // Check if the package exists
+    if ($checkStmt->rowCount() === 0) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "PT with ID $id not found."
+        ]);
+        exit();
+    }
+
+    // Update the status to "inactive" for soft delete
+    $deleteSql = "UPDATE users SET isActive = 0, updatedAt = CURRENT_TIMESTAMP WHERE id = :id";
+    $deleteStmt = $conn->prepare($deleteSql);
+    $deleteStmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $deleteStmt->execute();
+
+    // Return JSON response
+    echo json_encode([
+        "status" => "success",
+        "message" => "PT with ID $id has been soft deleted successfully."
+    ]);
+} catch (PDOException $e) {
+    // Handle errors
+    echo json_encode([
+        "status" => "error",
+        "message" => "Error soft deleting package: " . $e->getMessage()
+    ]);
 }

@@ -50,14 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateStmt->execute();
 
         // Gửi mật khẩu mới qua email
-        $subject = "Your New Password";
-        $message = "Hello " . $user['userName'] . ",\n\nYour password has been reset. Your new password is: " . $newPassword . "\n\nPlease log in and change your password immediately.\n\nThank you!";
+        $subject = "Mật khẩu mới của bạn";
+        $message = "Xin chào " . $user['userName'] . ",\n\nYour new password " . $newPassword . "\n\nVui lòng đăng nhập và đổi lại mật khẩu.\n\nCảm ơn!";
         if (sendMail($email, $subject, $message)) {
             header('Content-Type: application/json');
-            echo json_encode(["message" => "A new password has been sent to your email.", "status" => "success"]);
+            echo json_encode(["message" => "Mật khẩu mới đã được gửi đến email.", "status" => "success"]);
         } else {
             header('Content-Type: application/json');
-            echo json_encode(["message" => "Failed to send email.", "status" => "error"]);
+            echo json_encode(["message" => "Không gửi được email.", "status" => "error"]);
         }
     } catch (PDOException $e) {
         header('Content-Type: application/json');

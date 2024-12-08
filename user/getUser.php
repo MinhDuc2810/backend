@@ -14,7 +14,7 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Truy vấn lấy dữ liệu sản phẩm
-    $sql = "SELECT * FROM users where isDeleted = 0";
+    $sql = "SELECT * FROM users where isActive = 1";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
 
@@ -31,7 +31,7 @@ try {
             "phoneNumber" => $row['phoneNumber'],
 
             // Tạo URL hoàn chỉnh cho ảnh
-            "avatar" => "http://192.168.6.193:80/api/backend/userimage/" . $row['avatar'],
+            "avatar" => "http://192.168.1.19:80/api/backend/userimage/" . $row['avatar'],
             "role" => $row['role'],
             
         );

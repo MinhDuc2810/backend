@@ -1,6 +1,5 @@
 <?php
 require_once('../connect.php');
-session_start(); // Dùng session để lưu email
 
 // Thông tin kết nối cơ sở dữ liệu
 $servername = "localhost";
@@ -15,26 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Lấy dữ liệu JSON từ yêu cầu
-        $rawInput = file_get_contents('php://input');
-        $data = json_decode($rawInput, true);
+        $data = json_decode(file_get_contents('php://input'), true);
 
         // Kiểm tra dữ liệu đầu vào
-        if (!isset($data['otp'])) {
+        if (!isset($data['otp']) || !isset($data['email'])) {
             header('Content-Type: application/json');
-            echo json_encode(["message" => "OTP is required", "status" => "error"]);
+            echo json_encode(["message" => "Email and OTP are required", "status" => "error"]);
             exit;
         }
 
         $otp = $data['otp'];
-
-        // Kiểm tra xem email có trong session không
-        if (!isset($_SESSION['email'])) {
-            header('Content-Type: application/json');
-            echo json_encode(["message" => "Email not set. Please verify your email first.", "status" => "error"]);
-            exit;
-        }
-
-        $email = $_SESSION['email'];
+        $email = $data['email'];
 
         // Truy vấn người dùng theo email
         $sql = "SELECT id, otp, otpExpiresAt, isActive FROM users WHERE email = :email";
@@ -49,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(["message" => "User not found", "status" => "error"]);
             exit;
         }
-
 
         // Kiểm tra mã OTP
         if ($user['otp'] !== $otp) {
@@ -70,9 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateStmt = $conn->prepare($updateSql);
         $updateStmt->bindParam(':id', $user['id']);
         $updateStmt->execute();
-
-        // Xóa email khỏi session sau khi xác thực thành công
-        unset($_SESSION['email']);
 
         // Trả về phản hồi thành công
         header('Content-Type: application/json');
