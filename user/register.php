@@ -13,8 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Lấy dữ liệu JSON từ yêu cầu
-        $rawInput = file_get_contents('php://input');
-        $data = json_decode($rawInput, true);
+        $data = json_decode(file_get_contents('php://input'), true);
 
         // Kiểm tra dữ liệu đầu vào
         if (isset($data['userName'], $data['phoneNumber'], $data['email'], $data['password'])) {
@@ -53,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $otpExpiresAt = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
             // Thêm người dùng vào cơ sở dữ liệu với role mặc định là 'User' và isActive = 0
-            $sql = "INSERT INTO Users (userName, phoneNumber, email, password, role, otp, otpExpiresAt, isActive) 
-                    VALUES (:userName, :phoneNumber, :email, :password, 'User', :otp, :otpExpiresAt, 0)";
+            $sql = "INSERT INTO Users (userName, phoneNumber, email, password, role,avatar, otp, otpExpiresAt, isActive) 
+                    VALUES (:userName, :phoneNumber, :email, :password, 'User', 'icon-user-15.jpg', :otp, :otpExpiresAt, 0)";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':userName', $userName);
             $stmt->bindParam(':phoneNumber', $phoneNumber);
@@ -68,8 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['email'] = $email;
 
             // Gửi email OTP
-            $subject = "Verify Your Account";
-            $body = "Hello $userName,\n\nYour OTP for account verification is: $otp\n\nThis OTP will expire in 15 minutes.\n\nThank you!";
+            $subject = "Fitness Gym";
+            $body = "Xin chào $userName,\n\nMã OTP của bạn là: $otp\n\nSẽ hết hạn sau 15 phút.\n\nCảm ơn!";
             if (sendMail($email, $subject, $body)) {
                 header('Content-Type: application/json');
                 echo json_encode(["message" => "User registered successfully. OTP sent to email.", "status" => "success"]);

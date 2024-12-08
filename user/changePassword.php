@@ -7,19 +7,40 @@ $password = "";
 $dbname = "gym";
 
 // Kiểm tra phương thức yêu cầu
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     // Kết nối đến cơ sở dữ liệu MySQL sử dụng PDO
     try {
         $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // Lấy email từ query string
+        if (isset($_GET['email'])) {
+            $email = $_GET['email'];
+
+            // Kiểm tra định dạng email
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    "message" => "Invalid email format.",
+                    "status" => "error"
+                ));
+                exit;
+            }
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(array(
+                "message" => "Email is required in query string.",
+                "status" => "error"
+            ));
+            exit;
+        }
 
         // Lấy dữ liệu từ body của yêu cầu
         $rawInput = file_get_contents('php://input');
         $data = json_decode($rawInput, true);
 
         // Kiểm tra dữ liệu đầu vào
-        if (isset($data['email'], $data['currentPassword'], $data['newPassword'])) {
-            $email = $data['email'];
+        if (isset($data['currentPassword'], $data['newPassword'])) {
             $currentPassword = $data['currentPassword'];
             $newPassword = $data['newPassword'];
 
@@ -34,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Truy vấn tìm người dùng với email
-            $sql = "SELECT id, password FROM Users WHERE email = :email AND isActive = 0";
+            $sql = "SELECT id, password FROM Users WHERE email = :email AND isActive = 1";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':email', $email);
             $stmt->execute();
@@ -70,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Trả về lỗi nếu thiếu dữ liệu
             header('Content-Type: application/json');
-            echo json_encode(array("message" => "Email, currentPassword, and newPassword are required", "status" => "error"));
+            echo json_encode(array("message" => "currentPassword and newPassword are required in body.", "status" => "error"));
         }
     } catch (PDOException $e) {
         // Trả về lỗi nếu kết nối hoặc câu lệnh SQL gặp vấn đề
@@ -78,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(array("message" => "Error: " . $e->getMessage(), "status" => "error"));
     }
 } else {
-    // Nếu không phải phương thức POST, trả về lỗi
+    // Nếu không phải phương thức PUT, trả về lỗi
     header('Content-Type: application/json');
     echo json_encode(array("message" => "Invalid request method", "status" => "error"));
 }

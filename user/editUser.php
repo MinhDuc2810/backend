@@ -80,7 +80,7 @@ try {
         "userName" => $data['userName'] ?? $userUpdated['userName'],
         "phoneNumber" => $data['phoneNumber'] ?? $userUpdated['phoneNumber'],
         "email" => $data['email'] ?? $userUpdated['email'],
-        "avatar" => "http://192.168.6.193:80/api/backend/userimage/" . $userUpdated['avatar'],
+        "avatar" => "http://192.168.1.19:80/api/backend/userimage/" . $userUpdated['avatar'],
         "role" => $userUpdated['role']
     ];
 

@@ -16,13 +16,13 @@ function sendMail($toEmail, $subject, $body)
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'datndhe172134@fpt.edu.vn'; // Thay bằng email của bạn
-        $mail->Password = 'jnsh wglm qeag flav';       // Thay bằng mật khẩu ứng dụng
+        $mail->Username = 'ductao28102003@gmail.com'; // Thay bằng email của bạn
+        $mail->Password = 'rsrg lkbr grjp jkgj';       // Thay bằng mật khẩu ứng dụng
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
         // Cấu hình email
-        $mail->setFrom('datndhe172134@fpt.edu.vn', 'Duc Bu Cac Duc Anh');
+        $mail->setFrom('ductao28102003@gmail.com', 'Fitness App');
         $mail->addAddress($toEmail);
 
         $mail->isHTML(true);

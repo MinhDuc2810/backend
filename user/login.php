@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = $data['password'];
 
             // Truy vấn tìm người dùng với email
-            $sql = "SELECT * FROM Users WHERE email = :email AND isDeleted = 0";
+            $sql = "SELECT * FROM Users WHERE email = :email AND isActive = 1";
 
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':email', $email);
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             "userName" => $user['userName'],
                             "email" => $user['email'],
                             "phoneNumber" => $user['phoneNumber'],
-                            "avatar" => "http://192.168.6.193:80/api/backend/userimage/" . $user['avatar'],
+                            "avatar" => "http://192.168.1.19:80/api/backend/userimage/" . $user['avatar'],
                             "role" => $user['role']
                         ]
                     ]);
